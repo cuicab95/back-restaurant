@@ -17,6 +17,7 @@ class Restaurant(UuidMixin, TimestampMixin, SoftDeleteMixin):
     city = models.CharField(max_length=150)
     state = models.CharField(max_length=100)
     location = PointField()
+    external_id = models.UUIDField(editable=False, null=True, blank=True)
 
     @property
     def latitude(self):

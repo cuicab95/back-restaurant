@@ -6,6 +6,7 @@ from .utils import convert_to_point
 class RestaurantSerializer(serializers.ModelSerializer):
     latitude = serializers.FloatField()
     longitude = serializers.FloatField()
+    external_id = serializers.UUIDField(required=False)
 
     class Meta:
         model = Restaurant
@@ -21,6 +22,7 @@ class RestaurantSerializer(serializers.ModelSerializer):
             "state",
             "latitude",
             "longitude",
+            "external_id",
         )
 
     def create(self, validated_data):
@@ -58,4 +60,9 @@ class RestaurantListSerializer(serializers.ModelSerializer):
             "state",
             "latitude",
             "longitude",
+            "external_id",
         )
+
+
+class BulkRestaurantSerializer(serializers.Serializer):
+    csv_file = serializers.FileField()
