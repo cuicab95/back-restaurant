@@ -1,3 +1,4 @@
+from django.contrib.gis.measure import D
 from rest_framework import mixins, viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
@@ -56,10 +57,8 @@ class RestaurantViewSet(
         longitude = serializer.validated_data.get('longitude')
         location = convert_to_point(latitude, longitude)
         radius = serializer.validated_data.get('radius')
-        # Calcular el área del círculo
-        circle_area = location.buffer(radius)
         queryset = self.get_queryset()
-        queryset = queryset.filter(location__within=circle_area)
+        queryset = queryset.filter(location__distance_lte=(location, D(m=radius)))
         data = {
             'count': queryset.count(),
             'avg': round(queryset.aggregate(avg_rating=Avg('rating')).get('avg_rating'), 4),
