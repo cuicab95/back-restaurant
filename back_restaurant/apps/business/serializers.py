@@ -66,3 +66,9 @@ class RestaurantListSerializer(serializers.ModelSerializer):
 
 class BulkRestaurantSerializer(serializers.Serializer):
     csv_file = serializers.FileField()
+
+
+class StatisticsSerializer(serializers.Serializer):
+    latitude = serializers.FloatField()
+    longitude = serializers.FloatField()
+    radius = serializers.IntegerField()

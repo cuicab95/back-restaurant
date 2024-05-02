@@ -3,12 +3,14 @@ from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from back_restaurant.config.paginations import DefaultPagination
-from .serializers import RestaurantSerializer, RestaurantListSerializer, BulkRestaurantSerializer
+from .serializers import RestaurantSerializer, RestaurantListSerializer, BulkRestaurantSerializer, StatisticsSerializer
 from .models import Restaurant
 from .filters import RestaurantFilter
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from .services.bulk_csv import BulkRestaurantCSV
+from .utils import convert_to_point
+from django.db.models import StdDev, Avg
 
 
 class RestaurantViewSet(
@@ -31,6 +33,8 @@ class RestaurantViewSet(
             return RestaurantListSerializer
         elif self.action == "bulk_csv_restaurant":
             return BulkRestaurantSerializer
+        elif self.action == "statistics":
+            return StatisticsSerializer
         return super().get_serializer_class()
 
     @action(detail=False)
@@ -43,3 +47,22 @@ class RestaurantViewSet(
             return Response(data=data, status=status.HTTP_201_CREATED)
         except Exception as error:
             return Response(data=error, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False)
+    def statistics(self, request, pk=None, **kwargs):
+        serializer = self.get_serializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        latitude = serializer.validated_data.get('latitude')
+        longitude = serializer.validated_data.get('longitude')
+        location = convert_to_point(latitude, longitude)
+        radius = serializer.validated_data.get('radius')
+        # Calcular el área del círculo
+        circle_area = location.buffer(radius)
+        queryset = self.get_queryset()
+        queryset = queryset.filter(location__within=circle_area)
+        data = {
+            'count': queryset.count(),
+            'avg': round(queryset.aggregate(avg_rating=Avg('rating')).get('avg_rating'), 4),
+            'std': round(queryset.aggregate(std_dev_rating=StdDev('rating')).get('std_dev_rating'), 4),
+        }
+        return Response(data=data, status=status.HTTP_200_OK)
