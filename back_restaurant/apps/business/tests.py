@@ -8,6 +8,7 @@ class RestaurantTestCase(ConfigAPITest):
         self.user = self.create_user()
         self.path = "/business/restaurant/"
         self.authenticate(self.user)
+        self.test_restaurant_create()
 
     def test_restaurants_list(self):
         response = self.client.get(f"{self.path}")
@@ -17,7 +18,7 @@ class RestaurantTestCase(ConfigAPITest):
         latitude = 19.4394962074356
         longitude = -99.1264430870515
         radius = 600
-        response = self.client.get(f"{self.path}/statistics/?latitude={latitude}&longitude={longitude}&radius={radius}")
+        response = self.client.get(f"{self.path}statistics/?latitude={latitude}&longitude={longitude}&radius={radius}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_restaurant_delete(self):
@@ -28,10 +29,19 @@ class RestaurantTestCase(ConfigAPITest):
     def test_restaurant_update(self):
         restaurant = Restaurant.objects.first()
         data_request = {
-            "name": "Restaurant Demo",
+            "rating": 0,
+            "name": "Restaurante Demo editado",
+            "site": "http://demo-editado.com/",
+            "email": "test-3@example.com",
+            "phone": "123467865",
+            "street": "Calle Test",
+            "city": "Mérida",
+            "state": "Yucatán",
+            "latitude": 19.4341320322948,
+            "longitude": 99.1326235608364
         }
         response = self.client.patch(f"{self.path}{restaurant.id}/", data=data_request)
-        self.assertNotEqual(response.data["name"], restaurant.first_name)
+        self.assertNotEqual(response.data["name"], restaurant.name)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_restaurant_create(self):
