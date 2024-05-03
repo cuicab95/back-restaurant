@@ -14,4 +14,4 @@ COPY . /app/
 RUN apt-get update &&\
     apt-get install -y binutils libproj-dev libpq5 gdal-bin
 RUN python -m pip install psycopg2
-CMD ["gunicorn", "-b", "0.0.0.0:8000", "app:app"]
+CMD ["gunicorn", "back_restaurant.wsgi", "--bind", "0.0.0.0:8000", "--log-file", "-"]
